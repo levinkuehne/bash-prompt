@@ -26,9 +26,9 @@ color3_background="\[\e[106m"     # Light cyan background
 round_open=""
 round_close=""
 
-user="\u"           # icon: ♙
-host="\h"           # icon: 🖳
-directory="\W"      # icon: 🗁
+user="♙  \u"           # icon: ♙
+host="🖳  \h"           # icon: 🖳
+directory="🗁  \W"     # icon: 🗁
 
 
 #############
@@ -47,39 +47,49 @@ accumulate_ps1() {
 }
 
 git_prompt_info() {
-    # sind wir überhaupt in einem Repo?
+    # If not in a repo, return 
     git rev-parse --is-inside-work-tree &>/dev/null || return
 
+    # Get branch
     local branch dirty ahead behind
-    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    branch="⎇  $(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
-    # Änderungen lokal?
-    if [[ -n $(git status --porcelain 2>/dev/null) ]]; then
-        dirty="*"
-    else
-        dirty=""
-    fi
+    git_info="${branch}"
+    accumulate_ps1 "$color2_text" "$color2_background" "$git_info"
 
-    # Ahead/Behind vom Remote
+    # Are there local changes? 
+    local changes
+    changes=$(git status --porcelain 2>/dev/null | wc -l)
+
+    # Ahead / behind of remote branch
+    ahead=0
+    behind=0
     if git rev-parse "@{upstream}" &>/dev/null; then
-        read ahead behind < <(git rev-list --left-right --count @{upstream}...HEAD 2>/dev/null)
-        [[ $ahead -gt 0 ]] && ahead="↑$ahead" || ahead=""
-        [[ $behind -gt 0 ]] && behind="↓$behind" || behind=""
+        read behind ahead < <(git rev-list --left-right --count @{upstream}...HEAD 2>/dev/null)
     fi
 
-    echo "${branch}${dirty}${ahead}${behind}"
+    # Add local changes to ahead
+    (( ahead += changes ))
+
+    # Build strings
+    if [[ $ahead  -gt 0 || $behind -gt 0 ]]; then
+        [[ $ahead  -gt 0 ]] && ahead="↑$ahead" || ahead=""
+        [[ $behind -gt 0 ]] && behind="↓$behind" || behind=""
+
+        accumulated_ps1="${accumulated_ps1}[${ahead}${behind}] "
+    fi
 }
 
 build_prompt() {
 
-    accumulated_ps1="\n"
+    accumulated_ps1="\[\n\]"
 
     # Check if Venv is active
     local venv_name="${VIRTUAL_ENV##*[\\/]}"
     if [[ -n "$venv_name" ]]; then
 
         # Include Python Venv
-        accumulate_ps1 "$color1_text" "$color1_background" "$venv_name"
+        accumulate_ps1 "$color1_text" "$color1_background" "⛭ $venv_name"
     
     fi
 
@@ -92,22 +102,17 @@ build_prompt() {
     # Include Directory
     accumulate_ps1 "$color3_text" "$color3_background" "$directory"
 
-    # Check if currently in git repo
-    local git_info
-    git_info=$(git_prompt_info)
-    if [[ -n "$git_info" ]]; then
-        accumulate_ps1 "$color2_text" "$color2_background" "$git_info"
-    fi
+    # Include Git    
+    git_prompt_info
 
     # root vs user -> $ oder #
-    PS1="${accumulated_ps1}\$ "
+    PS1="${accumulated_ps1}$ "
 }
 
 
-###########
-# Combine #
-###########
+########
+# Main #
+########
 
-
-# Set hook so build_prompt runs before each prompt
+# Set command prompt
 PROMPT_COMMAND=build_prompt
