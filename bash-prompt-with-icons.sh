@@ -47,9 +47,9 @@ git_background="\[\e[48;5;23m\]"             # #126171 background
 round_open=""
 round_close=""
 
-user="\u"           # icon: ♙
-host="\h"           # icon: 🖳
-directory="\W"     # icon: 🗁
+user="♙  \u"           # icon: ♙
+host="🖳  \h"           # icon: 🖳
+directory="🗁  \W"     # icon: 🗁
 
 
 #############
@@ -73,7 +73,7 @@ git_prompt_info() {
 
     # Get branch
     local branch dirty ahead behind
-    branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+    branch="⎇  $(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     git_info="${branch}"
     accumulate_ps1 "$git_text" "$git_background" "$git_info"
@@ -112,8 +112,8 @@ build_prompt() {
     if [[ -n "$venv_name" ]]; then
 
         # Include Python Venv
-        accumulate_ps1 "$venv_text" "$venv_background" "$venv_name"
-
+        accumulate_ps1 "$venv_text" "$venv_background" "⛭ $venv_name"
+    
     fi
 
     # Include User
