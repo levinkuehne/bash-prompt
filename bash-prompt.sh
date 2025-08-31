@@ -7,16 +7,23 @@
 # Change colors here if wanted
 #   Color Reference Guide: https://misc.flogisoft.com/bash/tip_colors_and_formatting
 
-reset="\[\e[0m"
+reset="\[\e[0m\]"
 
-color1_text="\[\e[33m"            # Yellow text
-color1_background="\[\e[43m"      # Yellow background
+venv_text="\[\e[38;5;36m\]"                 # dunkleres #94E1B4 text
+venv_background="\[\e[48;5;36m\]"           # dunkleres #94E1B4 background
 
-color2_text="\[\e[95m"            # Light magenta text
-color2_background="\[\e[105m"     # Light magenta background
+user_text="\[\e[38;5;72m\]"                  # #69C5A0 text
+user_background="\[\e[48;5;72m\]"            # #69C5A0 background
 
-color3_text="\[\e[96m"            # Light cyan text
-color3_background="\[\e[106m"     # Light cyan background
+host_text="\[\e[38;5;37m\]"                  # #45A994 text
+host_background="\[\e[48;5;37m\]"            # #45A994 background
+
+directory_text="\[\e[38;5;30m\]"             # #288D8A text
+directory_background="\[\e[48;5;30m\]"       # #288D8A background
+
+git_text="\[\e[38;5;23m\]"                   # #126171 text
+git_background="\[\e[48;5;23m\]"             # #126171 background
+
 
 
 ####################
@@ -55,7 +62,7 @@ git_prompt_info() {
     branch="⎇  $(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     git_info="${branch}"
-    accumulate_ps1 "$color2_text" "$color2_background" "$git_info"
+    accumulate_ps1 "$git_text" "$git_background" "$git_info"
 
     # Are there local changes? 
     local changes
@@ -82,31 +89,31 @@ git_prompt_info() {
 
 build_prompt() {
 
-    accumulated_ps1="\[\n\]"
+    accumulated_ps1=""
 
     # Check if Venv is active
     local venv_name="${VIRTUAL_ENV##*[\\/]}"
     if [[ -n "$venv_name" ]]; then
 
         # Include Python Venv
-        accumulate_ps1 "$color1_text" "$color1_background" "⛭ $venv_name"
+        accumulate_ps1 "$venv_text" "$venv_background" "⛭ $venv_name"
     
     fi
 
     # Include User
-    accumulate_ps1 "$color1_text" "$color1_background" "$user"
+    accumulate_ps1 "$user_text" "$user_background" "$user"
 
     # Include Host
-    accumulate_ps1 "$color2_text" "$color2_background" "$host"
+    accumulate_ps1 "$host_text" "$host_background" "$host"
 
     # Include Directory
-    accumulate_ps1 "$color3_text" "$color3_background" "$directory"
+    accumulate_ps1 "$directory_text" "$directory_background" "$directory"
 
     # Include Git    
     git_prompt_info
 
     # root vs user -> $ oder #
-    PS1="${accumulated_ps1}$ "
+    PS1=$'\n'"${accumulated_ps1}$ "
 }
 
 
